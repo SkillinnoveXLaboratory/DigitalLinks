@@ -362,6 +362,7 @@
     }
 
     .field-group input,
+    .field-group select,
     .field-group textarea {
       width: 100%;
       border: 1px solid var(--border-color);
@@ -372,7 +373,8 @@
       transition: border-color 0.2s, box-shadow 0.2s;
     }
 
-    .field-group input {
+    .field-group input,
+    .field-group select {
       min-height: 48px;
       padding: 0.85rem 1rem;
       font-size: 0.95rem;
@@ -380,9 +382,15 @@
     }
 
     .field-group input:focus,
+    .field-group select:focus,
     .field-group textarea:focus {
       border-color: var(--sky-blue);
       box-shadow: 0 0 0 4px rgba(0, 168, 232, 0.12);
+    }
+
+    .field-group select {
+      appearance: none;
+      cursor: pointer;
     }
 
     .field-group textarea {
@@ -757,7 +765,6 @@
         </div>
         <div class="toolbar-right">
           <button class="toolbar-btn" id="uploadPromptBtn"><i class="fa-solid fa-upload"></i> Upload Prompt</button>
-          <button class="toolbar-btn" id="buildPromptBtn"><i class="fa-regular fa-file-lines"></i> Build Prompt</button>
           <button class="toolbar-btn" id="clearBtn"><i class="fa-regular fa-trash-can"></i> Clear</button>
           <button class="toolbar-btn btn-upgrade" id="previewBtn"><i class="fa-regular fa-eye"></i> Preview HTML</button>
           <button class="toolbar-btn btn-upgrade" id="savePdfTopBtn"><i class="fa-regular fa-file-pdf"></i> Save PDF</button>
@@ -771,20 +778,12 @@
             <input id="brandNameInput" value="Digital Links">
           </label>
           <label class="field-group">
-            <span class="field-label">Project Name <span>Prompt builder</span></span>
-            <input id="projectName" value="Catering Service Mobile Application">
-          </label>
-          <label class="field-group">
-            <span class="field-label">Total Cost <span>Builder</span></span>
-            <input id="projectCost" value="Rs 46000">
-          </label>
-          <label class="field-group">
-            <span class="field-label">Platforms <span>Builder</span></span>
-            <input id="platforms" value="Android App + iOS App + Vendor Panel + Admin Panel">
-          </label>
-          <label class="field-group">
-            <span class="field-label">Timeline <span>Builder</span></span>
-            <input id="timeline" value="25 - 30 Working Days">
+            <span class="field-label">Template <span>Preview style</span></span>
+            <select id="templateSelect">
+              <option value="template1">Template 1 - Blue Classic</option>
+              <option value="template2">Template 2 - Orange Studio</option>
+              <option value="template3">Template 3 - Red Executive</option>
+            </select>
           </label>
           <label class="field-group">
             <span class="field-label">Status <span>Live output</span></span>
@@ -1187,10 +1186,7 @@ Estimated Timeline:
 Now generate this quotation for: [Describe your project here]`;
 
     const promptInput = document.getElementById('promptInput');
-    const projectNameInput = document.getElementById('projectName');
-    const projectCostInput = document.getElementById('projectCost');
-    const platformsInput = document.getElementById('platforms');
-    const timelineInput = document.getElementById('timeline');
+    const templateSelect = document.getElementById('templateSelect');
     const brandNameInput = document.getElementById('brandNameInput');
     const statusText = document.getElementById('statusText');
     const assetStatus = document.getElementById('assetStatus');
@@ -1209,7 +1205,8 @@ Now generate this quotation for: [Describe your project here]`;
     let defaults = {
       brandName: 'Digital Links',
       brandLogo: '/brand.jpg',
-      overviewBanner: '/default-banner.jpg'
+      overviewBanner: '/default-banner.jpg',
+      templateId: 'template1'
     };
     let brandingState = {
       brandName: 'Digital Links',
@@ -1220,14 +1217,17 @@ Now generate this quotation for: [Describe your project here]`;
     initialize();
 
     async function initialize() {
-      promptInput.value = samplePrompt;
-
       try {
         const response = await fetch('/api/defaults');
         if (response.ok) {
           defaults = await response.json();
-          brandingState = { ...defaults };
+          brandingState = {
+            brandName: defaults.brandName,
+            brandLogo: defaults.brandLogo,
+            overviewBanner: defaults.overviewBanner
+          };
           brandNameInput.value = defaults.brandName;
+          templateSelect.value = defaults.templateId || 'template1';
         }
       } catch (_error) {
       }
@@ -1239,7 +1239,6 @@ Now generate this quotation for: [Describe your project here]`;
 
     function bindEvents() {
       document.getElementById('loadSampleBtn').addEventListener('click', loadSample);
-      document.getElementById('buildPromptBtn').addEventListener('click', buildPromptFromInputs);
       document.getElementById('previewBtn').addEventListener('click', previewHtml);
       document.getElementById('savePdfBtn').addEventListener('click', savePdfInBrowser);
       document.getElementById('savePdfTopBtn').addEventListener('click', savePdfInBrowser);
@@ -1260,7 +1259,15 @@ Now generate this quotation for: [Describe your project here]`;
       document.getElementById('footerPreviewBtn').addEventListener('click', previewHtml);
       document.getElementById('footerSavePdfBtn').addEventListener('click', savePdfInBrowser);
       document.getElementById('savePdfPreviewBtn').addEventListener('click', savePdfInBrowser);
-      brandNameInput.addEventListener('input', syncBrandUi);
+      templateSelect.addEventListener('change', () => {
+        invalidatePreview();
+        setStatus(`${templateSelect.options[templateSelect.selectedIndex].text} selected.`);
+      });
+      brandNameInput.addEventListener('input', () => {
+        syncBrandUi();
+        invalidatePreview();
+      });
+      promptInput.addEventListener('input', invalidatePreview);
       promptFileInput.addEventListener('change', handlePromptFile);
       logoFileInput.addEventListener('change', () => handleImageUpload(logoFileInput, 'brandLogo'));
       bannerFileInput.addEventListener('change', () => handleImageUpload(bannerFileInput, 'overviewBanner'));
@@ -1268,6 +1275,7 @@ Now generate this quotation for: [Describe your project here]`;
 
     function loadSample() {
       promptInput.value = samplePrompt;
+      invalidatePreview();
       setStatus('Sample prompt loaded.');
     }
 
@@ -1300,6 +1308,7 @@ Now generate this quotation for: [Describe your project here]`;
 
       const text = await file.text();
       promptInput.value = text;
+      invalidatePreview();
       setStatus(`Prompt file loaded: ${file.name}`);
       event.target.value = '';
     }
@@ -1311,6 +1320,7 @@ Now generate this quotation for: [Describe your project here]`;
       const dataUrl = await prepareAssetDataUrl(file, key);
       brandingState[key] = dataUrl;
       syncBrandUi();
+      invalidatePreview();
       assetStatus.textContent = `${key === 'brandLogo' ? 'Custom logo' : 'Custom banner'} optimized and loaded: ${file.name}`;
       setStatus(`${key === 'brandLogo' ? 'Logo' : 'Banner'} uploaded and compressed successfully.`);
       input.value = '';
@@ -1319,6 +1329,7 @@ Now generate this quotation for: [Describe your project here]`;
     function resetLogo() {
       brandingState.brandLogo = defaults.brandLogo;
       syncBrandUi();
+      invalidatePreview();
       assetStatus.textContent = 'Default logo restored.';
       setStatus('Default logo restored.');
     }
@@ -1326,6 +1337,7 @@ Now generate this quotation for: [Describe your project here]`;
     function resetBanner() {
       brandingState.overviewBanner = defaults.overviewBanner;
       syncBrandUi();
+      invalidatePreview();
       assetStatus.textContent = 'Default banner restored.';
       setStatus('Default banner restored.');
     }
@@ -1338,16 +1350,6 @@ Now generate this quotation for: [Describe your project here]`;
       footerLogo.src = brandingState.brandLogo;
       logoPreview.src = brandingState.brandLogo;
       bannerPreview.src = brandingState.overviewBanner;
-    }
-
-    function buildPromptFromInputs() {
-      const name = projectNameInput.value.trim() || 'Application Development Project';
-      const cost = projectCostInput.value.trim() || 'To be finalized';
-      const platforms = platformsInput.value.trim() || 'Android App + iOS App + Admin Panel';
-      const timeline = timelineInput.value.trim() || '25 - 30 Working Days';
-
-      promptInput.value = buildPrompt(name, platforms, cost, timeline);
-      setStatus('Structured prompt generated from builder fields.');
     }
 
     async function previewHtml() {
@@ -1384,9 +1386,7 @@ Now generate this quotation for: [Describe your project here]`;
     }
 
     async function ensurePreviewHtml() {
-      if (!lastPreviewHtml) {
-        await previewHtml();
-      }
+      await previewHtml();
       return lastPreviewHtml;
     }
 
@@ -1469,6 +1469,7 @@ Now generate this quotation for: [Describe your project here]`;
     function buildRequestBody(prompt) {
       return {
         prompt,
+        templateId: templateSelect.value || 'template1',
         branding: {
           brandName: brandingState.brandName,
           brandLogo: brandingState.brandLogo,
@@ -1477,120 +1478,8 @@ Now generate this quotation for: [Describe your project here]`;
       };
     }
 
-    function buildPrompt(name, platforms, cost, timeline) {
-      return `Quotation - ${name}
-
-(${platforms})
-
-1. Project Overview
-
-Development of ${name} where users can access services, submit requests, and manage their activity through a clean mobile and web experience.
-
-The system includes customer-facing screens, business/admin management panels, notifications, secure login, and scalable backend architecture.
-
-2. Platform Includes
-
-${platforms.split('+').map((item) => item.trim()).filter(Boolean).join('\n')}
-Backend API
-Admin Dashboard
-
-3. System Workflow
-
-Step 1 - User Access
-Users can:
-Register / login
-View dashboard
-Search services
-
-Step 2 - Service Flow
-Users can:
-View details
-Submit requests
-Track status
-
-Step 3 - Business Panel
-Vendors can:
-Add services
-Manage bookings
-Respond to inquiries
-
-Step 4 - Admin Management
-Admin can:
-Manage users
-Approve listings
-Monitor platform activity
-
-4. App Features
-
-Users can:
-Login
-Search
-Book / request service
-Track activity
-
-Vendors can:
-Manage services
-Manage bookings
-View inquiries
-
-Admin can:
-Manage users
-Manage vendors
-View reports
-
-5. Core Modules
-
-Authentication system
-User management system
-Service management system
-Booking/request system
-Notification system
-Admin dashboard
-
-6. Additional Features
-
-Clean UI/UX
-Fast performance
-Scalable architecture
-Mobile responsive design
-
-7. Technology Stack
-
-Frontend: Flutter / Web UI
-Backend: Node.js
-Database: MongoDB
-Admin Panel: Web Dashboard
-
-8. Development Charges
-
-${name}
-Total Development Cost: ${cost}
-
-9. Work Duration
-
-Estimated Timeline:
-${timeline}
-
-10. Payment Structure
-
-50% Advance Payment - Project Start
-50% Balance Payment - Before Final Delivery
-
-11. Cloud Hosting Services (Optional)
-
-Monthly cloud hosting plan available as per selected server.
-
-12. Additional Charges (Third-Party Services)
-
-Payment gateway charges
-SMS / OTP charges
-Map / email / API charges if required
-
-13. Exclusions
-
-App publishing charges
-Apple Developer Account charges
-Any feature not explicitly mentioned above`;
+    function invalidatePreview() {
+      lastPreviewHtml = '';
     }
 
     async function copyText(text, successMessage) {
