@@ -1,0 +1,13 @@
+{
+  "name": "quotation-generator",
+  "version": "1.0.0",
+  "description": "Prompt-to-PDF quotation generator for app and website projects.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "test": "node test-generator.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2"
+  }
+}

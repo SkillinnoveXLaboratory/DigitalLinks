@@ -1,0 +1,168 @@
+Create a project quotation in STRICT PLAIN TEXT for a rule-based quotation generator.
+
+Important:
+- Output plain text only.
+- Do not use Markdown.
+- Do not use #, ##, ### headings.
+- Do not use bold, italics, **, *, bullets, tables, or code blocks.
+- Do not use horizontal lines like ---.
+- Do not add notes, comments, suggestions, or explanations before or after the quotation.
+- Use only normal plain text lines.
+- Use normal hyphen "-" only, not long dash.
+- Use "Rs" instead of the rupee symbol to avoid encoding problems.
+- Put every feature, module, platform, charge, and exclusion on its own line.
+- Keep section headings exactly as written below.
+- Keep actor labels exactly like: Users can:, Vendors can:, Admin can:, Website can:
+- Keep technology stack in Label: Value format only.
+- Keep cost in one exact line like: Total Development Cost: Rs 50000
+- Keep timeline in plain text only.
+
+Use this exact structure:
+
+Quotation - [Project Name]
+
+([Platform 1] + [Platform 2] + [Platform 3] + [Platform 4])
+
+1. Project Overview
+
+Write 2 to 4 short plain paragraphs explaining:
+- what the project is
+- who will use it
+- what business model it follows
+- what the overall goal of the platform is
+
+2. Platform Includes
+
+[List each platform on a separate line]
+
+3. System Workflow
+
+Step 1 - User Access
+Users can:
+[Action 1]
+[Action 2]
+[Action 3]
+
+Step 2 - Discovery / Search
+Users can:
+[Action 1]
+[Action 2]
+[Action 3]
+
+Step 3 - Main Action
+Users can:
+[Action 1]
+[Action 2]
+[Action 3]
+
+Step 4 - Vendor / Staff / Provider Action
+Vendors can:
+[Action 1]
+[Action 2]
+[Action 3]
+
+Step 5 - Admin Management
+Admin can:
+[Action 1]
+[Action 2]
+[Action 3]
+
+Step 6 - Completion / Reporting
+Users can:
+[Action 1]
+[Action 2]
+[Action 3]
+
+Admin can:
+[Action 1]
+[Action 2]
+[Action 3]
+
+4. App Features
+
+Users can:
+[Feature 1]
+[Feature 2]
+[Feature 3]
+
+Vendors can:
+[Feature 1]
+[Feature 2]
+[Feature 3]
+
+Admin can:
+[Feature 1]
+[Feature 2]
+[Feature 3]
+
+Website can:
+[Feature 1]
+[Feature 2]
+[Feature 3]
+
+5. Core Modules
+
+[List each module on a separate line]
+
+6. Additional Features
+
+[List each additional feature on a separate line]
+
+7. Technology Stack
+
+Frontend Mobile: [value]
+Frontend Website: [value]
+Backend: [value]
+Framework: [value]
+Database: [value]
+Admin Panel: [value]
+Hosting: [value]
+Authentication: [value]
+Payment Gateway: [value]
+
+8. Development Charges
+
+[Project Name]
+
+Total Development Cost: Rs [amount]
+
+Cost Includes:
+[Line 1]
+[Line 2]
+[Line 3]
+
+9. Work Duration
+
+Estimated Timeline:
+[example: 45 - 60 Working Days]
+
+Project Phase Suggestion:
+[phase 1]
+[phase 2]
+[phase 3]
+
+10. Payment Structure
+
+[Payment line 1]
+[Payment line 2]
+[Payment line 3]
+
+11. Cloud Hosting Services (Optional)
+
+[Hosting line 1]
+[Hosting line 2]
+[Hosting line 3]
+
+12. Additional Charges (Third-Party Services)
+
+[Charge line 1]
+[Charge line 2]
+[Charge line 3]
+
+13. Exclusions
+
+[Exclusion line 1]
+[Exclusion line 2]
+[Exclusion line 3]
+
+Now generate this quotation for: [Describe your project here]

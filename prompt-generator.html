@@ -1,0 +1,1657 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quotation Generator</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    :root {
+      --dark-blue: #0b1c3c;
+      --sky-blue: #00a8e8;
+      --sky-blue-hover: #008cc2;
+      --base-white: #ffffff;
+      --off-white: #f8fafc;
+      --text-dark: #1e293b;
+      --text-light: #64748b;
+      --border-color: #e2e8f0;
+      --grid-color: rgba(11, 28, 60, 0.04);
+      --shadow: 0 10px 40px -10px rgba(11, 28, 60, 0.1);
+      --success: #0f766e;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    [hidden] {
+      display: none !important;
+    }
+
+    body {
+      background-color: var(--off-white);
+      color: var(--text-dark);
+      background-image:
+        linear-gradient(var(--grid-color) 1px, transparent 1px),
+        linear-gradient(90deg, var(--grid-color) 1px, transparent 1px);
+      background-size: 40px 40px;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    a {
+      text-decoration: none;
+      color: inherit;
+    }
+
+    ul {
+      list-style: none;
+    }
+
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .animate-fade-in {
+      animation: fadeInUp 0.8s ease-out forwards;
+      opacity: 0;
+    }
+
+    .delay-1 { animation-delay: 0.1s; }
+    .delay-2 { animation-delay: 0.3s; }
+    .delay-3 { animation-delay: 0.5s; }
+
+    .navbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem 2rem;
+      background: rgba(255, 255, 255, 0.8);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--border-color);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--dark-blue);
+    }
+
+    .logo-image {
+      width: 38px;
+      height: 38px;
+      border-radius: 10px;
+      object-fit: cover;
+      box-shadow: 0 8px 18px rgba(0, 168, 232, 0.18);
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 2rem;
+      font-weight: 500;
+      color: var(--text-light);
+    }
+
+    .nav-links li a:hover {
+      color: var(--sky-blue);
+      transition: color 0.2s;
+    }
+
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .btn-icon {
+      background: none;
+      border: none;
+      font-size: 1.05rem;
+      cursor: pointer;
+      color: var(--text-light);
+      transition: color 0.2s;
+    }
+
+    .btn-icon:hover {
+      color: var(--sky-blue);
+    }
+
+    .btn-primary,
+    .btn-secondary,
+    .toolbar-btn {
+      border: none;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .btn-primary {
+      background-color: var(--sky-blue);
+      color: var(--base-white);
+      padding: 0.75rem 1.5rem;
+      border-radius: 50px;
+      font-weight: 600;
+      box-shadow: 0 4px 6px rgba(0, 168, 232, 0.2);
+    }
+
+    .btn-primary:hover {
+      background-color: var(--sky-blue-hover);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 12px rgba(0, 168, 232, 0.3);
+    }
+
+    .btn-secondary {
+      background: var(--base-white);
+      color: var(--text-dark);
+      padding: 0.72rem 1.2rem;
+      border-radius: 50px;
+      border: 1px solid var(--border-color);
+      font-weight: 600;
+    }
+
+    .btn-secondary:hover {
+      border-color: var(--sky-blue);
+      color: var(--sky-blue);
+    }
+
+    .hero {
+      text-align: center;
+      padding: 5rem 2rem 3rem;
+    }
+
+    .hero h1 {
+      font-size: 3.5rem;
+      font-weight: 800;
+      color: var(--dark-blue);
+      margin-bottom: 1rem;
+      letter-spacing: -1px;
+    }
+
+    .hero h1 span {
+      color: var(--sky-blue);
+    }
+
+    .hero p {
+      font-size: 1.2rem;
+      color: var(--text-light);
+      max-width: 760px;
+      margin: 0 auto 2rem;
+      line-height: 1.6;
+    }
+
+    .trust-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--base-white);
+      padding: 0.5rem 1rem;
+      border-radius: 50px;
+      border: 1px solid var(--border-color);
+      font-size: 0.9rem;
+      color: var(--text-light);
+    }
+
+    .avatars {
+      display: flex;
+    }
+
+    .avatars span {
+      display: grid;
+      place-items: center;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      border: 2px solid var(--base-white);
+      margin-left: -8px;
+      background: linear-gradient(135deg, var(--dark-blue), var(--sky-blue));
+      color: var(--base-white);
+      font-size: 0.55rem;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+    }
+
+    .avatars span:first-child {
+      margin-left: 0;
+    }
+
+    .trust-badge span strong {
+      color: var(--sky-blue);
+    }
+
+    .app-container {
+      flex: 1;
+      max-width: 1000px;
+      margin: 0 auto 4rem;
+      width: 100%;
+      padding: 0 2rem;
+    }
+
+    .app-card,
+    .preview-card {
+      background: var(--base-white);
+      border-radius: 16px;
+      box-shadow: var(--shadow);
+      border: 1px solid var(--border-color);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .app-toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem 1.5rem;
+      border-bottom: 1px solid var(--border-color);
+      background: #fdfdfd;
+    }
+
+    .toolbar-left,
+    .toolbar-right {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .tone-selector {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--text-light);
+      border: 1px solid var(--border-color);
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      cursor: default;
+      transition: all 0.2s;
+    }
+
+    .tone-selector:hover {
+      border-color: var(--sky-blue);
+      color: var(--dark-blue);
+    }
+
+    .pro-badge {
+      background: rgba(0, 168, 232, 0.1);
+      color: var(--sky-blue);
+      font-size: 0.7rem;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-weight: 700;
+    }
+
+    .toolbar-btn {
+      background: var(--base-white);
+      border: 1px solid var(--border-color);
+      color: var(--text-light);
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .toolbar-btn:hover {
+      background: var(--off-white);
+      color: var(--dark-blue);
+      border-color: var(--sky-blue);
+    }
+
+    .btn-upgrade {
+      background: rgba(0, 168, 232, 0.1);
+      color: var(--sky-blue);
+      border: 1px solid rgba(0, 168, 232, 0.2);
+      font-weight: 600;
+    }
+
+    .btn-upgrade:hover {
+      background: var(--sky-blue);
+      color: var(--base-white);
+    }
+
+    .app-workspace {
+      position: relative;
+      flex: 1;
+      padding: 2rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    .settings-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 1rem;
+    }
+
+    .field-group {
+      display: grid;
+      gap: 0.45rem;
+    }
+
+    .field-label {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      color: var(--text-light);
+      text-transform: uppercase;
+    }
+
+    .field-group input,
+    .field-group textarea {
+      width: 100%;
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      background: #fff;
+      color: var(--text-dark);
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .field-group input {
+      min-height: 48px;
+      padding: 0.85rem 1rem;
+      font-size: 0.95rem;
+      font-weight: 500;
+    }
+
+    .field-group input:focus,
+    .field-group textarea:focus {
+      border-color: var(--sky-blue);
+      box-shadow: 0 0 0 4px rgba(0, 168, 232, 0.12);
+    }
+
+    .field-group textarea {
+      min-height: 360px;
+      resize: vertical;
+      padding: 1rem;
+      line-height: 1.65;
+      font-size: 1rem;
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    .field-group textarea::placeholder {
+      color: #94a3b8;
+    }
+
+    .asset-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 1rem;
+    }
+
+    .asset-tile {
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      padding: 1rem;
+      background: linear-gradient(180deg, #ffffff, #fbfdff);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.65);
+      display: grid;
+      gap: 0.8rem;
+      min-height: 170px;
+    }
+
+    .asset-tile h3 {
+      font-size: 0.9rem;
+      color: var(--dark-blue);
+    }
+
+    .asset-preview {
+      width: 100%;
+      height: 82px;
+      border-radius: 12px;
+      border: 1px dashed #cbd5e1;
+      background: #f8fbff;
+      overflow: hidden;
+      display: grid;
+      place-items: center;
+      color: var(--text-light);
+      font-size: 0.82rem;
+      text-align: center;
+      padding: 0.4rem;
+    }
+
+    .asset-preview img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .asset-preview.logo-preview img {
+      object-fit: contain;
+      background: #fff;
+    }
+
+    .asset-actions {
+      display: flex;
+      gap: 0.6rem;
+      flex-wrap: wrap;
+    }
+
+    .asset-actions button {
+      flex: 1 1 110px;
+    }
+
+    .prompt-area {
+      position: relative;
+      padding-bottom: 9.5rem;
+    }
+
+    .status-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      flex-wrap: wrap;
+      color: var(--text-light);
+      font-size: 0.9rem;
+      font-weight: 500;
+    }
+
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      padding: 0.55rem 0.9rem;
+      border: 1px solid var(--border-color);
+      border-radius: 999px;
+      background: var(--base-white);
+    }
+
+    .status-pill strong {
+      color: var(--success);
+    }
+
+    .action-cards {
+      position: absolute;
+      bottom: 1.5rem;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 1.5rem;
+    }
+
+    .action-card {
+      background: var(--base-white);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      width: 145px;
+      height: 118px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      color: var(--text-light);
+    }
+
+    .action-card i {
+      font-size: 1.5rem;
+      color: var(--sky-blue);
+      transition: transform 0.3s;
+    }
+
+    .action-card span {
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      text-align: center;
+      padding: 0 0.5rem;
+    }
+
+    .action-card:hover {
+      border-color: var(--sky-blue);
+      box-shadow: 0 4px 12px rgba(0, 168, 232, 0.1);
+      color: var(--dark-blue);
+      transform: translateY(-5px);
+    }
+
+    .action-card:hover i {
+      transform: scale(1.1);
+    }
+
+    .preview-card {
+      margin-top: 2rem;
+      min-height: 720px;
+    }
+
+    .preview-card .app-toolbar {
+      background: #fff;
+    }
+
+    .preview-shell {
+      position: relative;
+      min-height: 680px;
+      background: linear-gradient(180deg, #f8fbff, #eef4f9);
+    }
+
+    iframe {
+      display: block;
+      width: 100%;
+      min-height: 680px;
+      border: 0;
+      background: #fff;
+    }
+
+    .empty-preview {
+      display: grid;
+      min-height: 680px;
+      place-items: center;
+      text-align: center;
+      padding: 2rem;
+      color: var(--text-light);
+    }
+
+    .empty-preview i {
+      font-size: 2rem;
+      color: var(--sky-blue);
+      margin-bottom: 0.8rem;
+    }
+
+    .empty-preview strong {
+      display: block;
+      color: var(--dark-blue);
+      font-size: 1.2rem;
+      margin-bottom: 0.45rem;
+    }
+
+    .footer {
+      background-color: var(--dark-blue);
+      color: var(--base-white);
+      padding: 3rem 2rem;
+      margin-top: auto;
+      text-align: center;
+    }
+
+    .footer-content {
+      max-width: 1000px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 2rem;
+    }
+
+    .footer-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--base-white);
+    }
+
+    .footer-logo img {
+      width: 34px;
+      height: 34px;
+      object-fit: cover;
+      border-radius: 8px;
+      background: #fff;
+    }
+
+    .footer-links {
+      display: flex;
+      gap: 1.5rem;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .footer-links a,
+    .footer-links button {
+      color: #94a3b8;
+      transition: color 0.2s;
+      background: none;
+      border: none;
+      font: inherit;
+      cursor: pointer;
+    }
+
+    .footer-links a:hover,
+    .footer-links button:hover {
+      color: var(--sky-blue);
+    }
+
+    .copyright {
+      width: 100%;
+      margin-top: 2rem;
+      padding-top: 2rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      color: #64748b;
+      font-size: 0.9rem;
+    }
+
+    @media (max-width: 980px) {
+      .nav-links {
+        display: none;
+      }
+
+      .hero h1 {
+        font-size: 2.7rem;
+      }
+
+      .settings-grid,
+      .asset-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .action-cards {
+        position: relative;
+        bottom: 0;
+        left: 0;
+        transform: none;
+        flex-wrap: wrap;
+        justify-content: center;
+      }
+
+      .prompt-area {
+        padding-bottom: 0;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .navbar,
+      .hero,
+      .app-container {
+        padding-left: 1rem;
+        padding-right: 1rem;
+      }
+
+      .app-toolbar {
+        flex-direction: column;
+        gap: 1rem;
+        align-items: flex-start;
+      }
+
+      .toolbar-right {
+        width: 100%;
+      }
+
+      .toolbar-right .toolbar-btn,
+      .toolbar-right .btn-primary {
+        flex: 1 1 auto;
+        justify-content: center;
+      }
+
+      .action-card {
+        width: calc(50% - 0.75rem);
+        min-width: 135px;
+        height: 92px;
+      }
+
+      .footer-content {
+        flex-direction: column;
+        text-align: center;
+      }
+    }
+  </style>
+</head>
+<body>
+  <nav class="navbar animate-fade-in">
+    <div class="logo">
+      <img class="logo-image" id="navLogo" src="/brand.jpg" alt="Brand logo">
+      <span id="navBrandName">Digital Links</span>
+    </div>
+    <ul class="nav-links">
+      <li><a href="#promptTool">Prompt Builder</a></li>
+      <li><a href="#previewSection">Preview</a></li>
+      <li><a href="#rulesSection">Prompt Rules</a></li>
+      <li><a href="#footerSection">Save PDF</a></li>
+    </ul>
+    <div class="nav-actions">
+      <button class="btn-icon" id="pasteBtn" title="Paste prompt"><i class="fa-regular fa-clipboard"></i></button>
+      <button class="btn-secondary" id="loadSampleBtn">Load Sample</button>
+      <button class="btn-primary" id="savePdfBtn">Save PDF <i class="fa-solid fa-arrow-right" style="margin-left: 5px;"></i></button>
+    </div>
+  </nav>
+
+  <header class="hero">
+    <h1 class="animate-fade-in delay-1">Build polished quotation PDFs with <span>your exact template</span></h1>
+    <p class="animate-fade-in delay-2">Paste a project quotation prompt, keep your parser-friendly format, customize your brand logo and banner, preview the final layout below, and save the PDF from the browser.</p>
+
+    <div class="trust-badge animate-fade-in delay-3">
+      <div class="avatars" aria-hidden="true">
+        <span>DL</span>
+        <span>UI</span>
+        <span>PDF</span>
+      </div>
+      <span>Parser checks <strong>7 prompt styles</strong> before handoff</span>
+    </div>
+  </header>
+
+  <main class="app-container animate-fade-in delay-3" id="promptTool">
+    <section class="app-card">
+      <div class="app-toolbar">
+        <div class="toolbar-left">
+          <span style="font-size: 0.8rem; font-weight: 600; color: var(--text-light);">MODE</span>
+          <div class="tone-selector">
+            <i class="fa-solid fa-sliders"></i> Quotation Parser <i class="fa-solid fa-chevron-down" style="font-size: 0.7rem;"></i>
+            <span class="pro-badge">LIVE</span>
+          </div>
+        </div>
+        <div class="toolbar-right">
+          <button class="toolbar-btn" id="uploadPromptBtn"><i class="fa-solid fa-upload"></i> Upload Prompt</button>
+          <button class="toolbar-btn" id="buildPromptBtn"><i class="fa-regular fa-file-lines"></i> Build Prompt</button>
+          <button class="toolbar-btn" id="clearBtn"><i class="fa-regular fa-trash-can"></i> Clear</button>
+          <button class="toolbar-btn btn-upgrade" id="previewBtn"><i class="fa-regular fa-eye"></i> Preview HTML</button>
+          <button class="toolbar-btn btn-upgrade" id="savePdfTopBtn"><i class="fa-regular fa-file-pdf"></i> Save PDF</button>
+        </div>
+      </div>
+
+      <div class="app-workspace">
+        <div class="settings-grid">
+          <label class="field-group">
+            <span class="field-label">Brand Name <span id="brandHint">Shown in header/footer</span></span>
+            <input id="brandNameInput" value="Digital Links">
+          </label>
+          <label class="field-group">
+            <span class="field-label">Project Name <span>Prompt builder</span></span>
+            <input id="projectName" value="Catering Service Mobile Application">
+          </label>
+          <label class="field-group">
+            <span class="field-label">Total Cost <span>Builder</span></span>
+            <input id="projectCost" value="Rs 46000">
+          </label>
+          <label class="field-group">
+            <span class="field-label">Platforms <span>Builder</span></span>
+            <input id="platforms" value="Android App + iOS App + Vendor Panel + Admin Panel">
+          </label>
+          <label class="field-group">
+            <span class="field-label">Timeline <span>Builder</span></span>
+            <input id="timeline" value="25 - 30 Working Days">
+          </label>
+          <label class="field-group">
+            <span class="field-label">Status <span>Live output</span></span>
+            <div class="status-pill"><i class="fa-solid fa-circle-check"></i> <strong id="statusText">Ready for prompt input.</strong></div>
+          </label>
+        </div>
+
+        <div class="asset-grid">
+          <article class="asset-tile">
+            <h3>Brand Logo</h3>
+            <div class="asset-preview logo-preview"><img id="logoPreview" src="/brand.jpg" alt="Logo preview"></div>
+            <div class="asset-actions">
+              <button class="toolbar-btn" id="logoUploadBtn"><i class="fa-solid fa-image"></i> Upload Logo</button>
+              <button class="toolbar-btn" id="logoResetBtn"><i class="fa-solid fa-rotate-left"></i> Default</button>
+            </div>
+          </article>
+
+          <article class="asset-tile">
+            <h3>Overview Banner</h3>
+            <div class="asset-preview"><img id="bannerPreview" src="/default-banner.jpg" alt="Banner preview"></div>
+            <div class="asset-actions">
+              <button class="toolbar-btn" id="bannerUploadBtn"><i class="fa-solid fa-panorama"></i> Upload Banner</button>
+              <button class="toolbar-btn" id="bannerResetBtn"><i class="fa-solid fa-rotate-left"></i> Default</button>
+            </div>
+          </article>
+
+          <article class="asset-tile" id="rulesSection">
+            <h3>Prompt Rules</h3>
+            <div class="asset-preview" style="height:auto; min-height:82px; align-items:start; background:#fff;">
+              Plain text only, exact section order, each item on a new line, and role labels like Users can:, Vendors can:, Admin can:, Website can:.
+            </div>
+            <div class="asset-actions">
+              <button class="toolbar-btn" id="copyRulesBtn"><i class="fa-regular fa-copy"></i> Copy Rules</button>
+              <button class="toolbar-btn" id="copyMasterPromptBtn"><i class="fa-solid fa-wand-magic-sparkles"></i> Copy Master Prompt</button>
+            </div>
+          </article>
+        </div>
+
+        <div class="prompt-area">
+          <label class="field-group">
+            <span class="field-label">Quotation Prompt <span>Parser input</span></span>
+            <textarea id="promptInput" spellcheck="false" placeholder="Paste your quotation prompt here..."></textarea>
+          </label>
+
+          <div class="action-cards">
+            <button class="action-card" id="actionLogoBtn" type="button">
+              <i class="fa-solid fa-signature"></i>
+              <span>UPLOAD LOGO</span>
+            </button>
+            <button class="action-card" id="actionBannerBtn" type="button">
+              <i class="fa-solid fa-image"></i>
+              <span>UPLOAD BANNER</span>
+            </button>
+            <button class="action-card" id="actionSampleBtn" type="button">
+              <i class="fa-regular fa-file-lines"></i>
+              <span>TRY A SAMPLE</span>
+            </button>
+            <button class="action-card" id="actionPreviewBtn" type="button">
+              <i class="fa-solid fa-clipboard-list"></i>
+              <span>PREVIEW BELOW</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="status-bar">
+          <span>Your prompt, brand logo, and banner are used for preview and browser PDF save.</span>
+          <span id="assetStatus">Default logo and default banner active.</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="preview-card" id="previewSection">
+      <div class="app-toolbar">
+        <div class="toolbar-left">
+          <span style="font-size: 0.8rem; font-weight: 600; color: var(--text-light);">PREVIEW</span>
+          <div class="tone-selector">
+            <i class="fa-regular fa-window-maximize"></i> HTML Preview
+          </div>
+        </div>
+        <div class="toolbar-right">
+          <button class="toolbar-btn btn-upgrade" id="savePdfPreviewBtn"><i class="fa-regular fa-file-pdf"></i> Save PDF</button>
+        </div>
+      </div>
+
+      <div class="preview-shell">
+        <div class="empty-preview" id="emptyPreview">
+          <div>
+            <i class="fa-regular fa-file-pdf"></i>
+            <strong>No preview yet</strong>
+            Preview HTML to load the final quotation below.
+          </div>
+        </div>
+        <iframe id="previewFrame" title="Quotation Preview" hidden></iframe>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer animate-fade-in delay-3" id="footerSection">
+    <div class="footer-content">
+      <div class="footer-logo">
+        <img id="footerLogo" src="/brand.jpg" alt="Brand logo">
+        <span id="footerBrandName">Digital Links</span>
+      </div>
+      <div class="footer-links">
+        <button id="footerSampleBtn">Load Sample</button>
+        <button id="footerPreviewBtn">Preview HTML</button>
+        <button id="footerSavePdfBtn">Save PDF</button>
+        <a href="#rulesSection">Prompt Rules</a>
+      </div>
+      <div class="footer-links">
+        <a href="https://digitallinks.in" target="_blank" rel="noreferrer"><i class="fa-solid fa-globe"></i></a>
+        <a href="#previewSection"><i class="fa-regular fa-eye"></i></a>
+        <a href="#promptTool"><i class="fa-solid fa-wand-magic-sparkles"></i></a>
+      </div>
+      <div class="copyright">
+        &copy; 2026 Quotation Generator. Prompt parser, HTML preview, branding upload, and browser print save are all live.
+      </div>
+    </div>
+  </footer>
+
+  <input type="file" id="promptFileInput" accept=".txt,.md,.text" hidden>
+  <input type="file" id="logoFileInput" accept="image/*" hidden>
+  <input type="file" id="bannerFileInput" accept="image/*" hidden>
+
+  <script>
+    const samplePrompt = `Quotation - Catering Service Mobile Application (Regional Catering Platform)
+
+(Android App + iOS App + Vendor Panel + Admin Panel)
+
+1. Project Overview
+
+Development of a catering service mobile application where users can explore and book regional catering services including weddings, events, functions, and private parties.
+
+The platform will allow multiple catering vendors to register, showcase menus, receive booking requests, and respond to customer inquiries.
+
+2. Platform Includes
+
+Customer Mobile Application (Android)
+Customer Mobile Application (iOS)
+Vendor Caterer Panel
+Web-Based Admin Panel
+Booking Management System
+
+3. System Workflow
+
+Step 1 - User Access
+Users can:
+Register / login
+Search catering services
+
+Step 2 - Vendor Exploration
+Users can:
+Browse caterers
+Filter by location / cuisine
+
+Step 3 - Menu & Details
+Users can:
+View menus
+Check pricing
+View packages
+
+Step 4 - Booking System
+Users can:
+Request booking
+Select date/event
+
+Step 5 - Vendor Panel
+Vendors can:
+Register/login
+Add menus
+Manage bookings
+Respond to inquiries
+
+Step 6 - Admin Management
+Admin can:
+Manage vendors
+Approve listings
+Monitor bookings
+Manage platform
+
+4. App Features
+
+Users can:
+Search caterers
+View menus
+Book services
+
+Vendors can:
+Manage services
+Track bookings
+
+Admin can:
+Approve vendors
+Monitor bookings
+Manage platform settings
+
+5. Core Modules
+
+User authentication system
+Vendor management system
+Menu management system
+Booking system
+Inquiry/lead system
+Notification system
+Admin dashboard
+
+6. Additional Features
+
+Location-based search
+Category-wise listing (veg/non-veg/regional)
+Clean UI/UX
+Fast performance
+Scalable architecture
+
+7. Technology Stack
+
+Frontend: Flutter (Android & iOS)
+Backend: Node.js
+Database: MongoDB
+Admin Panel: Web Dashboard
+
+8. Development Charges
+
+Catering Service Mobile Application (Multi-Vendor)
+Total Development Cost: Rs 46000
+
+9. Work Duration
+
+Estimated Timeline:
+25 - 30 Working Days
+
+10. Payment Structure
+
+50% Advance Payment - Project Start
+50% Balance Payment - Before Final Delivery
+
+11. Cloud Hosting Services (Optional)
+
+Monthly Plan
+Rs 700 per month
+Yearly Plan
+Rs 600 per month
+Total yearly cost: Rs 7200
+
+12. Additional Charges (Third-Party Services)
+
+Payment gateway charges
+Approx 2% per transaction
+SMS / OTP charges
+Approx Rs 0.10 - Rs 0.25 per SMS
+
+13. Exclusions
+
+App publishing charges (Play Store & App Store)
+Apple Developer Account charges
+Any feature not explicitly mentioned above`;
+
+    const promptRulesText = `Generate quotation in clean parser-friendly plain text.
+
+Do:
+- Use exact section order from 1 to 13
+- Use plain text only
+- Put each item on a new line
+- Use Step 1 - Name format
+- Use Users can:, Vendors can:, Admin can:, Website can:
+- Use Label: Value format for technology stack
+- Use Total Development Cost: Rs [amount]
+- Use Estimated Timeline: on one line and duration on next line
+
+Do not:
+- Do not use Markdown
+- Do not use #, ##, ###, *, **, bullets, or tables
+- Do not use long dash or special symbols that may break encoding
+- Do not use the rupee symbol; use Rs
+- Do not add extra commentary before or after the quotation
+- Do not merge multiple items into one paragraph`;
+
+    const masterPromptText = `Create a project quotation in STRICT PLAIN TEXT for a rule-based quotation generator.
+
+Important:
+- Output plain text only.
+- Do not use Markdown.
+- Do not use #, ##, ### headings.
+- Do not use bold, italics, **, *, bullets, tables, or code blocks.
+- Do not use horizontal lines like ---.
+- Do not add notes, comments, suggestions, or explanations before or after the quotation.
+- Use only normal plain text lines.
+- Use normal hyphen "-" only, not long dash.
+- Use "Rs" instead of the rupee symbol.
+- Put every feature, module, platform, charge, and exclusion on its own line.
+- Keep actor labels exactly like: Users can:, Vendors can:, Admin can:, Website can:
+- Keep technology stack in Label: Value format only.
+- Keep cost in one exact line like: Total Development Cost: Rs 50000
+
+Use this exact structure:
+
+Quotation - [Project Name]
+
+([Platform 1] + [Platform 2] + [Platform 3] + [Platform 4])
+
+1. Project Overview
+[Write 2 to 4 short paragraphs]
+
+2. Platform Includes
+[Each platform on a new line]
+
+3. System Workflow
+Step 1 - User Access
+Users can:
+[Action 1]
+[Action 2]
+
+Step 2 - Discovery / Search
+Users can:
+[Action 1]
+[Action 2]
+
+Step 3 - Main Action
+Users can:
+[Action 1]
+[Action 2]
+
+Step 4 - Vendor / Staff / Provider Action
+Vendors can:
+[Action 1]
+[Action 2]
+
+Step 5 - Admin Management
+Admin can:
+[Action 1]
+[Action 2]
+
+Step 6 - Completion / Reporting
+Users can:
+[Action 1]
+[Action 2]
+
+Admin can:
+[Action 1]
+[Action 2]
+
+4. App Features
+Users can:
+[Feature 1]
+[Feature 2]
+
+Vendors can:
+[Feature 1]
+[Feature 2]
+
+Admin can:
+[Feature 1]
+[Feature 2]
+
+Website can:
+[Feature 1]
+[Feature 2]
+
+5. Core Modules
+[Each module on a new line]
+
+6. Additional Features
+[Each feature on a new line]
+
+7. Technology Stack
+Frontend Mobile: [value]
+Frontend Website: [value]
+Backend: [value]
+Framework: [value]
+Database: [value]
+Admin Panel: [value]
+Hosting: [value]
+Authentication: [value]
+Payment Gateway: [value]
+
+8. Development Charges
+[Project Name]
+Total Development Cost: Rs [amount]
+
+9. Work Duration
+Estimated Timeline:
+[Duration]
+
+10. Payment Structure
+[Line 1]
+[Line 2]
+
+11. Cloud Hosting Services (Optional)
+[Line 1]
+[Line 2]
+
+12. Additional Charges (Third-Party Services)
+[Line 1]
+[Line 2]
+
+13. Exclusions
+[Line 1]
+[Line 2]
+
+Now generate this quotation for: [Describe your project here]`;
+
+    const promptInput = document.getElementById('promptInput');
+    const projectNameInput = document.getElementById('projectName');
+    const projectCostInput = document.getElementById('projectCost');
+    const platformsInput = document.getElementById('platforms');
+    const timelineInput = document.getElementById('timeline');
+    const brandNameInput = document.getElementById('brandNameInput');
+    const statusText = document.getElementById('statusText');
+    const assetStatus = document.getElementById('assetStatus');
+    const previewFrame = document.getElementById('previewFrame');
+    const emptyPreview = document.getElementById('emptyPreview');
+    const promptFileInput = document.getElementById('promptFileInput');
+    const logoFileInput = document.getElementById('logoFileInput');
+    const bannerFileInput = document.getElementById('bannerFileInput');
+    const logoPreview = document.getElementById('logoPreview');
+    const bannerPreview = document.getElementById('bannerPreview');
+    const navLogo = document.getElementById('navLogo');
+    const footerLogo = document.getElementById('footerLogo');
+    const navBrandName = document.getElementById('navBrandName');
+    const footerBrandName = document.getElementById('footerBrandName');
+    let lastPreviewHtml = '';
+    let defaults = {
+      brandName: 'Digital Links',
+      brandLogo: '/brand.jpg',
+      overviewBanner: '/default-banner.jpg'
+    };
+    let brandingState = {
+      brandName: 'Digital Links',
+      brandLogo: '/brand.jpg',
+      overviewBanner: '/default-banner.jpg'
+    };
+
+    initialize();
+
+    async function initialize() {
+      promptInput.value = samplePrompt;
+
+      try {
+        const response = await fetch('/api/defaults');
+        if (response.ok) {
+          defaults = await response.json();
+          brandingState = { ...defaults };
+          brandNameInput.value = defaults.brandName;
+        }
+      } catch (_error) {
+      }
+
+      syncBrandUi();
+      bindEvents();
+      setStatus('Ready for prompt input.');
+    }
+
+    function bindEvents() {
+      document.getElementById('loadSampleBtn').addEventListener('click', loadSample);
+      document.getElementById('buildPromptBtn').addEventListener('click', buildPromptFromInputs);
+      document.getElementById('previewBtn').addEventListener('click', previewHtml);
+      document.getElementById('savePdfBtn').addEventListener('click', savePdfInBrowser);
+      document.getElementById('savePdfTopBtn').addEventListener('click', savePdfInBrowser);
+      document.getElementById('pasteBtn').addEventListener('click', pastePrompt);
+      document.getElementById('clearBtn').addEventListener('click', clearPrompt);
+      document.getElementById('uploadPromptBtn').addEventListener('click', () => promptFileInput.click());
+      document.getElementById('logoUploadBtn').addEventListener('click', () => logoFileInput.click());
+      document.getElementById('bannerUploadBtn').addEventListener('click', () => bannerFileInput.click());
+      document.getElementById('logoResetBtn').addEventListener('click', resetLogo);
+      document.getElementById('bannerResetBtn').addEventListener('click', resetBanner);
+      document.getElementById('copyRulesBtn').addEventListener('click', () => copyText(promptRulesText, 'Prompt rules copied.'));
+      document.getElementById('copyMasterPromptBtn').addEventListener('click', () => copyText(masterPromptText, 'Master prompt copied.'));
+      document.getElementById('actionLogoBtn').addEventListener('click', () => logoFileInput.click());
+      document.getElementById('actionBannerBtn').addEventListener('click', () => bannerFileInput.click());
+      document.getElementById('actionSampleBtn').addEventListener('click', loadSample);
+      document.getElementById('actionPreviewBtn').addEventListener('click', previewHtml);
+      document.getElementById('footerSampleBtn').addEventListener('click', loadSample);
+      document.getElementById('footerPreviewBtn').addEventListener('click', previewHtml);
+      document.getElementById('footerSavePdfBtn').addEventListener('click', savePdfInBrowser);
+      document.getElementById('savePdfPreviewBtn').addEventListener('click', savePdfInBrowser);
+      brandNameInput.addEventListener('input', syncBrandUi);
+      promptFileInput.addEventListener('change', handlePromptFile);
+      logoFileInput.addEventListener('change', () => handleImageUpload(logoFileInput, 'brandLogo'));
+      bannerFileInput.addEventListener('change', () => handleImageUpload(bannerFileInput, 'overviewBanner'));
+    }
+
+    function loadSample() {
+      promptInput.value = samplePrompt;
+      setStatus('Sample prompt loaded.');
+    }
+
+    function clearPrompt() {
+      promptInput.value = '';
+      previewFrame.hidden = true;
+      previewFrame.removeAttribute('src');
+      previewFrame.removeAttribute('srcdoc');
+      emptyPreview.hidden = false;
+      setStatus('Prompt cleared.');
+    }
+
+    async function pastePrompt() {
+      try {
+        const text = await navigator.clipboard.readText();
+        if (!text.trim()) {
+          setStatus('Clipboard is empty.');
+          return;
+        }
+        promptInput.value = text;
+        setStatus('Prompt pasted from clipboard.');
+      } catch (_error) {
+        setStatus('Clipboard paste was blocked by the browser.');
+      }
+    }
+
+    async function handlePromptFile(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const text = await file.text();
+      promptInput.value = text;
+      setStatus(`Prompt file loaded: ${file.name}`);
+      event.target.value = '';
+    }
+
+    async function handleImageUpload(input, key) {
+      const file = input.files[0];
+      if (!file) return;
+
+      const dataUrl = await prepareAssetDataUrl(file, key);
+      brandingState[key] = dataUrl;
+      syncBrandUi();
+      assetStatus.textContent = `${key === 'brandLogo' ? 'Custom logo' : 'Custom banner'} optimized and loaded: ${file.name}`;
+      setStatus(`${key === 'brandLogo' ? 'Logo' : 'Banner'} uploaded and compressed successfully.`);
+      input.value = '';
+    }
+
+    function resetLogo() {
+      brandingState.brandLogo = defaults.brandLogo;
+      syncBrandUi();
+      assetStatus.textContent = 'Default logo restored.';
+      setStatus('Default logo restored.');
+    }
+
+    function resetBanner() {
+      brandingState.overviewBanner = defaults.overviewBanner;
+      syncBrandUi();
+      assetStatus.textContent = 'Default banner restored.';
+      setStatus('Default banner restored.');
+    }
+
+    function syncBrandUi() {
+      brandingState.brandName = brandNameInput.value.trim() || defaults.brandName;
+      navBrandName.textContent = brandingState.brandName;
+      footerBrandName.textContent = brandingState.brandName;
+      navLogo.src = brandingState.brandLogo;
+      footerLogo.src = brandingState.brandLogo;
+      logoPreview.src = brandingState.brandLogo;
+      bannerPreview.src = brandingState.overviewBanner;
+    }
+
+    function buildPromptFromInputs() {
+      const name = projectNameInput.value.trim() || 'Application Development Project';
+      const cost = projectCostInput.value.trim() || 'To be finalized';
+      const platforms = platformsInput.value.trim() || 'Android App + iOS App + Admin Panel';
+      const timeline = timelineInput.value.trim() || '25 - 30 Working Days';
+
+      promptInput.value = buildPrompt(name, platforms, cost, timeline);
+      setStatus('Structured prompt generated from builder fields.');
+    }
+
+    async function previewHtml() {
+      const prompt = promptInput.value.trim();
+      if (!prompt) {
+        setStatus('Paste a quotation prompt first.');
+        return;
+      }
+
+      syncBrandUi();
+      setStatus('Rendering HTML preview...');
+
+      try {
+        const response = await fetch('/api/render', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(buildRequestBody(prompt))
+        });
+
+        const result = await response.json();
+        if (!response.ok) {
+          throw new Error(result.error || 'Preview failed.');
+        }
+
+        previewFrame.hidden = false;
+        emptyPreview.hidden = true;
+        previewFrame.removeAttribute('src');
+        lastPreviewHtml = result.html;
+        previewFrame.srcdoc = result.html;
+        setStatus(`Preview ready: ${result.data.projectTitle}`);
+      } catch (error) {
+        setStatus(error.message || 'Preview failed.');
+      }
+    }
+
+    async function ensurePreviewHtml() {
+      if (!lastPreviewHtml) {
+        await previewHtml();
+      }
+      return lastPreviewHtml;
+    }
+
+    async function savePdfInBrowser() {
+      const prompt = promptInput.value.trim();
+      if (!prompt) {
+        setStatus('Paste a quotation prompt first.');
+        return;
+      }
+
+      const printWindow = window.open('', '_blank', 'width=1240,height=1754');
+      if (!printWindow) {
+        setStatus('Popup blocked. Allow popups to open the print dialog.');
+        return;
+      }
+
+      syncBrandUi();
+      const previewHtmlContent = await ensurePreviewHtml();
+      if (!previewHtmlContent) {
+        try {
+          printWindow.close();
+        } catch (_error) {
+        }
+        return;
+      }
+
+      printWindow.document.open();
+      printWindow.document.write(buildPrintableHtml(previewHtmlContent));
+      printWindow.document.close();
+      try {
+        await waitForPrintWindowAssets(printWindow);
+        printWindow.addEventListener('afterprint', () => {
+          try {
+            printWindow.close();
+          } catch (_error) {
+          }
+        }, { once: true });
+        printWindow.focus();
+        printWindow.print();
+        setStatus('Print dialog opened. Choose Save as PDF in the browser.');
+      } catch (error) {
+        try {
+          printWindow.close();
+        } catch (_error) {
+        }
+        setStatus(error.message || 'Could not open the print dialog.');
+      }
+    }
+
+    function buildPrintableHtml(html) {
+      const source = String(html || '');
+      return /<base\s/i.test(source)
+        ? source
+        : source.replace(/<head([^>]*)>/i, `<head$1><base href="${location.origin}/">`);
+    }
+
+    async function waitForPrintWindowAssets(printWindow, timeoutMs = 12000) {
+      const started = Date.now();
+
+      while (Date.now() - started < timeoutMs) {
+        if (printWindow.closed) {
+          throw new Error('Print window was closed before it loaded.');
+        }
+
+        const doc = printWindow.document;
+        const images = Array.from(doc.images || []);
+        const allReady = doc.readyState === 'complete' && images.every((image) => image.complete);
+
+        if (allReady) {
+          await new Promise((resolve) => setTimeout(resolve, 250));
+          return;
+        }
+
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      }
+
+      throw new Error('Print window took too long to load.');
+    }
+
+    function buildRequestBody(prompt) {
+      return {
+        prompt,
+        branding: {
+          brandName: brandingState.brandName,
+          brandLogo: brandingState.brandLogo,
+          overviewBanner: brandingState.overviewBanner
+        }
+      };
+    }
+
+    function buildPrompt(name, platforms, cost, timeline) {
+      return `Quotation - ${name}
+
+(${platforms})
+
+1. Project Overview
+
+Development of ${name} where users can access services, submit requests, and manage their activity through a clean mobile and web experience.
+
+The system includes customer-facing screens, business/admin management panels, notifications, secure login, and scalable backend architecture.
+
+2. Platform Includes
+
+${platforms.split('+').map((item) => item.trim()).filter(Boolean).join('\n')}
+Backend API
+Admin Dashboard
+
+3. System Workflow
+
+Step 1 - User Access
+Users can:
+Register / login
+View dashboard
+Search services
+
+Step 2 - Service Flow
+Users can:
+View details
+Submit requests
+Track status
+
+Step 3 - Business Panel
+Vendors can:
+Add services
+Manage bookings
+Respond to inquiries
+
+Step 4 - Admin Management
+Admin can:
+Manage users
+Approve listings
+Monitor platform activity
+
+4. App Features
+
+Users can:
+Login
+Search
+Book / request service
+Track activity
+
+Vendors can:
+Manage services
+Manage bookings
+View inquiries
+
+Admin can:
+Manage users
+Manage vendors
+View reports
+
+5. Core Modules
+
+Authentication system
+User management system
+Service management system
+Booking/request system
+Notification system
+Admin dashboard
+
+6. Additional Features
+
+Clean UI/UX
+Fast performance
+Scalable architecture
+Mobile responsive design
+
+7. Technology Stack
+
+Frontend: Flutter / Web UI
+Backend: Node.js
+Database: MongoDB
+Admin Panel: Web Dashboard
+
+8. Development Charges
+
+${name}
+Total Development Cost: ${cost}
+
+9. Work Duration
+
+Estimated Timeline:
+${timeline}
+
+10. Payment Structure
+
+50% Advance Payment - Project Start
+50% Balance Payment - Before Final Delivery
+
+11. Cloud Hosting Services (Optional)
+
+Monthly cloud hosting plan available as per selected server.
+
+12. Additional Charges (Third-Party Services)
+
+Payment gateway charges
+SMS / OTP charges
+Map / email / API charges if required
+
+13. Exclusions
+
+App publishing charges
+Apple Developer Account charges
+Any feature not explicitly mentioned above`;
+    }
+
+    async function copyText(text, successMessage) {
+      try {
+        await navigator.clipboard.writeText(text);
+        setStatus(successMessage);
+      } catch (_error) {
+        setStatus('Clipboard copy was blocked by the browser.');
+      }
+    }
+
+    async function prepareAssetDataUrl(file, key) {
+      const config = key === 'brandLogo'
+        ? { maxWidth: 520, maxHeight: 520, quality: 0.82 }
+        : { maxWidth: 1600, maxHeight: 900, quality: 0.84 };
+
+      return resizeImageToDataUrl(file, config);
+    }
+
+    function readFileAsDataUrl(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = () => reject(new Error('File could not be read.'));
+        reader.readAsDataURL(file);
+      });
+    }
+
+    async function resizeImageToDataUrl(file, { maxWidth, maxHeight, quality }) {
+      const sourceDataUrl = await readFileAsDataUrl(file);
+      const image = await loadImage(sourceDataUrl);
+
+      let { width, height } = image;
+      const scale = Math.min(maxWidth / width, maxHeight / height, 1);
+      width = Math.max(1, Math.round(width * scale));
+      height = Math.max(1, Math.round(height * scale));
+
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+
+      const context = canvas.getContext('2d', { alpha: false });
+      context.fillStyle = '#ffffff';
+      context.fillRect(0, 0, width, height);
+      context.drawImage(image, 0, 0, width, height);
+
+      return canvas.toDataURL('image/jpeg', quality);
+    }
+
+    function loadImage(source) {
+      return new Promise((resolve, reject) => {
+        const image = new Image();
+        image.onload = () => resolve(image);
+        image.onerror = () => reject(new Error('Image could not be loaded.'));
+        image.src = source;
+      });
+    }
+
+    function setStatus(message) {
+      statusText.textContent = message;
+    }
+  </script>
+</body>
+</html>
