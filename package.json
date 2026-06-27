@@ -8,6 +8,7 @@
     "test": "node test-generator.js"
   },
   "dependencies": {
-    "express": "^4.19.2"
+    "express": "^4.19.2",
+    "playwright": "^1.61.1"
   }
 }

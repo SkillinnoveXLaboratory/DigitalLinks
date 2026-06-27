@@ -171,6 +171,20 @@
       color: var(--sky-blue);
     }
 
+    .btn-download {
+      background: linear-gradient(135deg, #0b2e68, #0e4ea8);
+      color: #fff;
+      border: 1px solid rgba(11, 46, 104, 0.2);
+      box-shadow: 0 10px 24px rgba(14, 78, 168, 0.18);
+      font-weight: 700;
+    }
+
+    .btn-download:hover {
+      background: linear-gradient(135deg, #08224c, #0b3d82);
+      color: #fff;
+      box-shadow: 0 12px 26px rgba(11, 46, 104, 0.24);
+    }
+
     .hero {
       text-align: center;
       padding: 5rem 2rem 3rem;
@@ -342,6 +356,17 @@
       color: #fff;
       border-color: rgba(14, 78, 168, 0.32);
       box-shadow: 0 12px 24px rgba(14, 78, 168, 0.24);
+      transform: translateY(-1px);
+    }
+
+    .toolbar-btn.btn-download {
+      color: #fff;
+      border: 1px solid rgba(11, 46, 104, 0.18);
+    }
+
+    .toolbar-btn.btn-download:hover {
+      color: #fff;
+      border-color: rgba(11, 46, 104, 0.22);
       transform: translateY(-1px);
     }
 
@@ -605,6 +630,61 @@
       margin-bottom: 0.45rem;
     }
 
+    .processing-overlay {
+      position: fixed;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      padding: 1.5rem;
+      background: rgba(7, 21, 45, 0.36);
+      backdrop-filter: blur(10px);
+      z-index: 400;
+    }
+
+    .processing-overlay[hidden] {
+      display: none !important;
+    }
+
+    .processing-card {
+      width: min(100%, 360px);
+      padding: 1.6rem 1.5rem;
+      border-radius: 20px;
+      background: rgba(255, 255, 255, 0.94);
+      border: 1px solid rgba(255, 255, 255, 0.72);
+      box-shadow: 0 24px 80px rgba(7, 21, 45, 0.18);
+      text-align: center;
+      color: var(--dark-blue);
+    }
+
+    .processing-spinner {
+      width: 52px;
+      height: 52px;
+      margin: 0 auto 1rem;
+      border-radius: 50%;
+      border: 4px solid rgba(0, 168, 232, 0.16);
+      border-top-color: var(--sky-blue);
+      animation: spin 0.9s linear infinite;
+    }
+
+    .processing-card strong {
+      display: block;
+      margin-bottom: 0.45rem;
+      font-size: 1.1rem;
+    }
+
+    .processing-card p {
+      margin: 0;
+      color: var(--text-light);
+      font-size: 0.96rem;
+      line-height: 1.6;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
     .footer {
       background-color: var(--dark-blue);
       color: var(--base-white);
@@ -751,6 +831,7 @@
     <div class="nav-actions">
       <button class="btn-icon" id="pasteBtn" title="Paste prompt"><i class="fa-regular fa-clipboard"></i></button>
       <button class="btn-secondary" id="loadSampleBtn">Load Sample</button>
+      <button class="btn-primary btn-download" id="downloadPdfBtn">Download PDF <i class="fa-solid fa-download" style="margin-left: 5px;"></i></button>
       <button class="btn-primary" id="savePdfBtn">Save PDF <i class="fa-solid fa-arrow-right" style="margin-left: 5px;"></i></button>
     </div>
   </nav>
@@ -783,6 +864,7 @@
           <button class="toolbar-btn" id="uploadPromptBtn"><i class="fa-solid fa-upload"></i> Upload Prompt</button>
           <button class="toolbar-btn" id="clearBtn"><i class="fa-regular fa-trash-can"></i> Clear</button>
           <button class="toolbar-btn btn-upgrade btn-generate" id="previewBtn"><i class="fa-regular fa-eye"></i> Preview HTML</button>
+          <button class="toolbar-btn btn-download" id="downloadPdfTopBtn"><i class="fa-solid fa-download"></i> Download PDF</button>
           <button class="toolbar-btn btn-upgrade" id="savePdfTopBtn"><i class="fa-regular fa-file-pdf"></i> Save PDF</button>
         </div>
       </div>
@@ -871,6 +953,7 @@
           </div>
         </div>
         <div class="toolbar-right">
+          <button class="toolbar-btn btn-download" id="downloadPdfPreviewBtn"><i class="fa-solid fa-download"></i> Download PDF</button>
           <button class="toolbar-btn btn-upgrade" id="savePdfPreviewBtn"><i class="fa-regular fa-file-pdf"></i> Save PDF</button>
         </div>
       </div>
@@ -910,6 +993,14 @@
       </div>
     </div>
   </footer>
+
+  <div class="processing-overlay" id="processingOverlay" hidden>
+    <div class="processing-card" role="status" aria-live="polite" aria-busy="true">
+      <div class="processing-spinner" aria-hidden="true"></div>
+      <strong id="processingTitle">Preparing PDF</strong>
+      <p id="processingMessage">Please wait while we generate your downloadable quotation.</p>
+    </div>
+  </div>
 
   <input type="file" id="promptFileInput" accept=".txt,.md,.text" hidden>
   <input type="file" id="logoFileInput" accept="image/*" hidden>
@@ -1063,6 +1154,9 @@ Any feature not explicitly mentioned above`;
     const footerLogo = document.getElementById('footerLogo');
     const navBrandName = document.getElementById('navBrandName');
     const footerBrandName = document.getElementById('footerBrandName');
+    const processingOverlay = document.getElementById('processingOverlay');
+    const processingTitle = document.getElementById('processingTitle');
+    const processingMessage = document.getElementById('processingMessage');
     let lastPreviewHtml = '';
     let defaults = {
       brandName: 'Digital Links',
@@ -1101,7 +1195,9 @@ Any feature not explicitly mentioned above`;
     function bindEvents() {
       document.getElementById('loadSampleBtn').addEventListener('click', loadSample);
       document.getElementById('previewBtn').addEventListener('click', previewHtml);
+      document.getElementById('downloadPdfBtn').addEventListener('click', downloadPdfFile);
       document.getElementById('savePdfBtn').addEventListener('click', savePdfInBrowser);
+      document.getElementById('downloadPdfTopBtn').addEventListener('click', downloadPdfFile);
       document.getElementById('savePdfTopBtn').addEventListener('click', savePdfInBrowser);
       document.getElementById('pasteBtn').addEventListener('click', pastePrompt);
       document.getElementById('clearBtn').addEventListener('click', clearPrompt);
@@ -1116,6 +1212,7 @@ Any feature not explicitly mentioned above`;
       document.getElementById('actionPreviewBtn').addEventListener('click', previewHtml);
       document.getElementById('footerSampleBtn').addEventListener('click', loadSample);
       document.getElementById('footerPreviewBtn').addEventListener('click', previewHtml);
+      document.getElementById('downloadPdfPreviewBtn').addEventListener('click', downloadPdfFile);
       document.getElementById('footerSavePdfBtn').addEventListener('click', savePdfInBrowser);
       document.getElementById('savePdfPreviewBtn').addEventListener('click', savePdfInBrowser);
       brandNameInput.addEventListener('input', () => {
@@ -1289,6 +1386,67 @@ Any feature not explicitly mentioned above`;
         }
         setStatus(error.message || 'Could not open the print dialog.');
       }
+    }
+
+    async function downloadPdfFile() {
+      const prompt = promptInput.value.trim();
+      if (!prompt) {
+        setStatus('Paste a quotation prompt first.');
+        return;
+      }
+
+      syncBrandUi();
+      showProcessingOverlay('Generating PDF', 'Please wait while we build the downloadable quotation.');
+      setStatus('Generating downloadable PDF...');
+
+      try {
+        const response = await fetch('/api/download-pdf', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(buildRequestBody(prompt))
+        });
+
+        if (!response.ok) {
+          let message = 'PDF download failed.';
+          try {
+            const data = await response.json();
+            message = data.error || message;
+          } catch (_error) {
+          }
+          throw new Error(message);
+        }
+
+        const blob = await response.blob();
+        const downloadUrl = URL.createObjectURL(blob);
+        const contentDisposition = response.headers.get('content-disposition') || '';
+        const match = contentDisposition.match(/filename=\"?([^\";]+)\"?/i);
+        const fileName = match ? match[1] : 'quotation.pdf';
+        const anchor = document.createElement('a');
+
+        anchor.href = downloadUrl;
+        anchor.download = fileName;
+        document.body.appendChild(anchor);
+        anchor.click();
+        anchor.remove();
+        URL.revokeObjectURL(downloadUrl);
+        setStatus(`PDF downloaded: ${fileName}`);
+      } catch (error) {
+        setStatus(error.message || 'PDF download failed.');
+      } finally {
+        hideProcessingOverlay();
+      }
+    }
+
+    function showProcessingOverlay(title, message) {
+      processingTitle.textContent = title || 'Preparing PDF';
+      processingMessage.textContent = message || 'Please wait while we generate your downloadable quotation.';
+      processingOverlay.hidden = false;
+      document.body.style.overflow = 'hidden';
+    }
+
+    function hideProcessingOverlay() {
+      processingOverlay.hidden = true;
+      document.body.style.overflow = '';
     }
 
     function buildPrintableHtml(html) {
