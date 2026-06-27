@@ -10,11 +10,9 @@ const {
 
 const app = express();
 const preferredPort = Number(process.env.PORT || 3000);
-const templatePaths = new Map([
-  ['template1', path.join(__dirname, 'template1.html')],
-  ['template2', path.join(__dirname, 'template2.html')],
-  ['template3', path.join(__dirname, 'template3.html')]
-]);
+const templatePath = path.join(__dirname, 'template1.html');
+
+app.set('trust proxy', true);
 
 app.use(express.json({ limit: '25mb' }));
 app.use(express.static(__dirname));
@@ -31,15 +29,9 @@ app.get('/api/defaults', (_req, res) => {
   res.json({
     brandName: DEFAULT_BRAND_NAME,
     brandLogo: DEFAULT_BRAND_LOGO,
-    overviewBanner: DEFAULT_OVERVIEW_BANNER,
-    templateId: 'template1'
+    overviewBanner: DEFAULT_OVERVIEW_BANNER
   });
 });
-
-function getTemplatePath(body = {}) {
-  const templateId = String(body.templateId || 'template1').trim();
-  return templatePaths.get(templateId) || templatePaths.get('template1');
-}
 
 function getRenderOptions(body = {}) {
   const branding = body.branding || {};
@@ -59,7 +51,7 @@ app.post('/api/parse', (req, res) => {
 app.post('/api/render', (req, res) => {
   const prompt = String(req.body.prompt || '');
   if (!prompt.trim()) return res.status(400).json({ error: 'Prompt is required.' });
-  const result = renderQuotationHtml(prompt, getTemplatePath(req.body), getRenderOptions(req.body));
+  const result = renderQuotationHtml(prompt, templatePath, getRenderOptions(req.body));
   res.json(result);
 });
 

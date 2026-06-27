@@ -6,6 +6,8 @@ const SECTION_ALIASES = new Map([
   ['overview', 'Project Overview'],
   ['description', 'Project Overview'],
   ['project description', 'Project Overview'],
+  ['project summary', 'Project Summary'],
+  ['summary', 'Project Summary'],
   ['platform includes', 'Platform Includes'],
   ['platform include', 'Platform Includes'],
   ['platforms included', 'Platform Includes'],
@@ -16,6 +18,11 @@ const SECTION_ALIASES = new Map([
   ['app features', 'App Features'],
   ['application features', 'App Features'],
   ['user features', 'App Features'],
+  ['admin features', 'App Features'],
+  ['vendor features', 'App Features'],
+  ['seller features', 'App Features'],
+  ['website features', 'App Features'],
+  ['customer features', 'App Features'],
   ['features', 'App Features'],
   ['core modules', 'Core Modules'],
   ['modules', 'Core Modules'],
@@ -75,6 +82,9 @@ function normalizeText(text = '') {
     .replace(/\r\n/g, '\n')
     .replace(/\r/g, '\n')
     .replace(/\u00a0/g, ' ')
+    .replace(/â‚¹/g, 'Rs ')
+    .replace(/[–—]/g, '-')
+    .replace(/â€“|â€”/g, '-')
     .replace(/[ \t]+$/gm, '')
     .trim();
 }
@@ -101,6 +111,59 @@ function stripBullet(value = '') {
     .replace(/^[\s\-*\u2022\u25cf\u25cb\u25a0\u25aa]+/, '')
     .replace(/^\d+\s*[.)]\s*/, '')
     .trim();
+}
+
+function stripMarkdownPrefix(value = '') {
+  return String(value).replace(/^#{1,6}\s*/, '').trim();
+}
+
+function cleanInlineMarkdown(value = '') {
+  return String(value)
+    .replace(/__(.+?)__/g, '$1')
+    .replace(/\*\*(.+?)\*\*/g, '$1')
+    .replace(/`([^`]+)`/g, '$1')
+    .replace(/\*/g, '')
+    .trim();
+}
+
+function cleanParsedLine(line = '') {
+  return cleanInlineMarkdown(stripBullet(stripMarkdownPrefix(line)));
+}
+
+function normalizeSpacing(value = '') {
+  return String(value)
+    .replace(/\s+/g, ' ')
+    .replace(/\s*-\s*/g, ' - ')
+    .trim();
+}
+
+function looksLikeMoney(value = '') {
+  return /(?:₹|rs\.?|inr|\$)\s*:?\s*[\d,]+(?:\.\d+)?|[\d,]+(?:\.\d+)?\s*(?:rs|inr)/i.test(String(value));
+}
+
+function normalizeMoneyText(value = '') {
+  const cleaned = cleanInlineMarkdown(String(value))
+    .replace(/₹/g, 'Rs ')
+    .replace(/(^|[\s:(-])rs(?=\d)/gi, '$1Rs ')
+    .replace(/(^|[\s:(-])rs(?=\s*:)/gi, '$1Rs')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  return cleaned.replace(/^:\s*/, '').trim();
+}
+
+function looksLikeDuration(value = '') {
+  return /\b\d+\s*(?:-|to)?\s*\d*\s*(?:working\s+days?|days?|weeks?|months?|hrs?|hours?)\b/i.test(String(value));
+}
+
+function normalizeDurationText(value = '') {
+  return normalizeSpacing(
+    cleanInlineMarkdown(String(value))
+      .replace(/^estimated timeline\s*:?\s*/i, '')
+      .replace(/^timeline\s*:?\s*/i, '')
+      .replace(/^work duration\s*:?\s*/i, '')
+      .replace(/^duration\s*:?\s*/i, '')
+  );
 }
 
 function headingFromLine(line = '') {
@@ -175,7 +238,7 @@ function splitParagraphs(lines = []) {
       }
       return;
     }
-    buffer.push(stripBullet(line));
+    buffer.push(cleanParsedLine(line));
   });
 
   if (buffer.length) paragraphs.push(buffer.join(' '));
@@ -184,14 +247,14 @@ function splitParagraphs(lines = []) {
 
 function listItems(lines = []) {
   return getNonEmpty(lines)
-    .map(stripBullet)
+    .map(cleanParsedLine)
     .filter((line) => line && !/^[A-Za-z /&+-]+\s+can\s*:$/i.test(line));
 }
 
 function parseTitle(sections) {
   const introLines = getNonEmpty(sections.intro || []);
-  const firstLine = introLines[0] || '';
-  const secondLine = introLines[1] || '';
+  const firstLine = cleanInlineMarkdown(stripMarkdownPrefix(introLines[0] || ''));
+  const secondLine = cleanInlineMarkdown(stripMarkdownPrefix(introLines[1] || ''));
 
   let projectTitle = firstLine
     .replace(/^quotation\s*[-:\u2013\u2014]\s*/i, '')
@@ -239,7 +302,7 @@ function normalizeRoleTitle(rawTitle = '') {
 }
 
 function actorHeader(line = '') {
-  const clean = stripBullet(line);
+  const clean = cleanParsedLine(line);
   const match = clean.match(/^([A-Za-z][A-Za-z0-9 /&+-]{1,50}?)(?:\s+can)?\s*:$/i);
   if (!match) return null;
 
@@ -261,7 +324,7 @@ function parseActorGroups(lines = []) {
       return;
     }
 
-    const item = stripBullet(line);
+    const item = cleanParsedLine(line);
     if (!item) return;
 
     if (!current) {
@@ -287,7 +350,7 @@ function parseWorkflow(lines = []) {
   const loose = [];
 
   getNonEmpty(lines).forEach((line) => {
-    const clean = stripBullet(line);
+    const clean = cleanParsedLine(line);
     const stepMatch = clean.match(/^step\s*(\d+)\s*[\-:\u2013\u2014.)]?\s*(.*)$/i);
 
     if (stepMatch) {
@@ -334,7 +397,7 @@ function parseTechStack(lines = []) {
   const items = [];
 
   getNonEmpty(lines).forEach((line) => {
-    const clean = stripBullet(line);
+    const clean = cleanParsedLine(line);
     const match = clean.match(/^([^:]{2,40})\s*:\s*(.+)$/);
     if (match) {
       items.push({ label: match[1].trim(), value: match[2].trim() });
@@ -349,15 +412,27 @@ function parseTechStack(lines = []) {
 function parseDevelopmentCharges(lines = []) {
   const cleanLines = listItems(lines);
   let totalCost = '';
+  let pendingCostLabel = '';
 
   cleanLines.forEach((line) => {
-    const match = line.match(/(?:total\s+development\s+cost|total\s+cost|grand\s+total|project\s+cost)\s*:?\s*(.+)$/i);
-    if (match) totalCost = match[1].trim();
+    const match = line.match(/^(total\s+development\s+cost|development\s+charges|development\s+cost|total\s+cost|grand\s+total|project\s+cost|quotation\s+amount|estimated\s+cost|total\s+budget|budget(?:ed)?\s+cost|costing)\s*:?\s*(.*)$/i);
+    if (match) {
+      pendingCostLabel = match[1].trim();
+      if (match[2].trim()) {
+        totalCost = normalizeMoneyText(match[2].trim());
+      }
+      return;
+    }
+
+    if (!totalCost && pendingCostLabel && looksLikeMoney(line)) {
+      totalCost = normalizeMoneyText(line);
+      return;
+    }
   });
 
   if (!totalCost) {
-    const currencyLine = cleanLines.find((line) => /(?:\u20b9|rs\.?|inr|\$)\s*[\d,]+|[\d,]+\s*(?:rs|inr)/i.test(line));
-    if (currencyLine) totalCost = currencyLine.replace(/^.*?(?:\:|\-)\s*/, '').trim();
+    const currencyLine = cleanLines.find((line) => looksLikeMoney(line));
+    if (currencyLine) totalCost = normalizeMoneyText(currencyLine.replace(/^.*?(?:\:|\-)\s*/, '').trim());
   }
 
   const titleLine = cleanLines.find((line) => !/total|cost|charges|development/i.test(line)) || 'Project Development';
@@ -387,6 +462,102 @@ function unique(items = []) {
     seen.add(key);
     return true;
   });
+}
+
+function sourceLines(text = '') {
+  return splitLines(text)
+    .map(cleanParsedLine)
+    .map((line) => line.replace(/^[-*_]{3,}$/g, '').trim())
+    .filter(Boolean);
+}
+
+function extractDevelopmentChargesFromSource(text = '') {
+  const lines = sourceLines(text);
+  const sectionResult = parseDevelopmentCharges(lines);
+  if (sectionResult.totalCost !== 'To be finalized') {
+    return sectionResult;
+  }
+
+  let totalCost = '';
+  let pendingCostLabel = '';
+
+  for (const line of lines) {
+    const match = line.match(/^(total\s+development\s+cost|development\s+charges|development\s+cost|total\s+cost|grand\s+total|project\s+cost|quotation\s+amount|estimated\s+cost|total\s+budget|budget(?:ed)?\s+cost|costing)\s*:?\s*(.*)$/i);
+    if (match) {
+      pendingCostLabel = match[1].trim();
+      if (match[2].trim()) {
+        totalCost = normalizeMoneyText(match[2].trim());
+        break;
+      }
+      continue;
+    }
+
+    if (pendingCostLabel && looksLikeMoney(line)) {
+      totalCost = normalizeMoneyText(line);
+      break;
+    }
+  }
+
+  if (!totalCost) {
+    const currencyLine = lines.find((line) => looksLikeMoney(line));
+    if (currencyLine) {
+      totalCost = normalizeMoneyText(currencyLine.replace(/^.*?(?:\:|\-)\s*/, '').trim());
+    }
+  }
+
+  const titleLine = lines.find((line) => !/quotation|overview|project overview|platform|feature|module|stack|duration|payment|hosting|charges|cost|timeline|exclusions/i.test(line)) || 'Project Development';
+
+  return {
+    title: titleLine,
+    totalCost: totalCost || 'To be finalized',
+    lines
+  };
+}
+
+function parseDuration(lines = [], sourceText = '') {
+  const cleanLines = listItems(lines);
+  let pendingDuration = false;
+
+  for (const line of cleanLines) {
+    if (/^(estimated timeline|timeline|work duration|duration)\s*:?\s*(.*)$/i.test(line)) {
+      const match = line.match(/^(estimated timeline|timeline|work duration|duration)\s*:?\s*(.*)$/i);
+      const value = normalizeDurationText(match[2] || '');
+      if (value && looksLikeDuration(value)) return [value];
+      pendingDuration = true;
+      continue;
+    }
+
+    if (pendingDuration && looksLikeDuration(line)) {
+      return [normalizeDurationText(line)];
+    }
+
+    if (looksLikeDuration(line)) {
+      return [normalizeDurationText(line)];
+    }
+  }
+
+  const allLines = sourceLines(sourceText);
+  pendingDuration = false;
+
+  for (const line of allLines) {
+    if (/^(estimated timeline|timeline|work duration|duration)\s*:?\s*(.*)$/i.test(line)) {
+      const match = line.match(/^(estimated timeline|timeline|work duration|duration)\s*:?\s*(.*)$/i);
+      const value = normalizeDurationText(match[2] || '');
+      if (value && looksLikeDuration(value)) return [value];
+      pendingDuration = true;
+      continue;
+    }
+
+    if (pendingDuration && looksLikeDuration(line)) {
+      return [normalizeDurationText(line)];
+    }
+
+    if (looksLikeDuration(line)) {
+      return [normalizeDurationText(line)];
+    }
+  }
+
+  return ['Timeline to be finalized after scope confirmation'];
 }
 
 function withFallback(items, fallback) {
@@ -427,8 +598,13 @@ function parseQuotationPrompt(input = '') {
       { label: 'Database', value: 'MongoDB' },
       { label: 'Admin Panel', value: 'Web Dashboard' }
     ]),
-    developmentCharges: parseDevelopmentCharges(sections['Development Charges'] || []),
-    duration: withFallback(listItems(sections['Work Duration'] || []), ['Timeline to be finalized after scope confirmation']),
+    developmentCharges: (() => {
+      const parsedCharges = parseDevelopmentCharges(sections['Development Charges'] || []);
+      return parsedCharges.totalCost === 'To be finalized'
+        ? extractDevelopmentChargesFromSource(text)
+        : parsedCharges;
+    })(),
+    duration: parseDuration(sections['Work Duration'] || [], text),
     paymentStructure: withFallback(listItems(sections['Payment Structure'] || []), ['50% advance payment - project start', '50% balance payment - before final delivery']),
     hosting: withFallback(listItems(sections['Cloud Hosting Services'] || []), ['Optional hosting can be added as per selected server plan']),
     additionalCharges: withFallback(listItems(sections['Additional Charges'] || []), ['Payment gateway, SMS/OTP, map, email, or third-party API charges as applicable']),
@@ -454,6 +630,25 @@ function deriveFeatureGroupsFromWorkflow(workflowSteps = []) {
 
 function renderParagraphs(paragraphs = []) {
   return paragraphs.map((text) => `<p>${escapeHtml(text)}</p>`).join('\n');
+}
+
+function renderRichText(value = '') {
+  const source = String(value || '')
+    .replace(/__(.+?)__/g, '**$1**')
+    .replace(/`([^`]+)`/g, '$1');
+  const pattern = /\*\*(.+?)\*\*/g;
+  let cursor = 0;
+  let html = '';
+  let match;
+
+  while ((match = pattern.exec(source)) !== null) {
+    html += escapeHtml(source.slice(cursor, match.index));
+    html += `<strong>${escapeHtml(match[1])}</strong>`;
+    cursor = match.index + match[0].length;
+  }
+
+  html += escapeHtml(source.slice(cursor));
+  return html.replace(/\*/g, '');
 }
 
 function renderPills(items = []) {
@@ -545,6 +740,129 @@ function renderTermsGrid(data) {
   `).join('\n');
 }
 
+function parseAmountLine(text = '') {
+  const match = String(text).match(/^((?:total\s+(?:development\s+)?cost|project\s+cost|grand\s+total|total\s+balance|balance\s+amount))\s*:?\s*(.+)$/i);
+  if (!match) return null;
+
+  return {
+    label: match[1].trim(),
+    value: match[2].trim()
+  };
+}
+
+function extractMarkdownHeading(line = '') {
+  const match = String(line).match(/^(#{1,6})\s+(.+)$/);
+  if (!match) return null;
+
+  return {
+    level: match[1].length,
+    text: cleanInlineMarkdown(match[2].trim())
+  };
+}
+
+function summarizeDuration(items = []) {
+  const cleaned = items
+    .map((item) => cleanInlineMarkdown(stripMarkdownPrefix(item)))
+    .filter(Boolean)
+    .filter((item) => !/^estimated timeline:?$/i.test(item));
+
+  return cleaned[0] || 'Timeline to be finalized';
+}
+
+function renderPromptDocument(sourceText = '') {
+  const lines = normalizeText(sourceText).split('\n');
+  const fragments = [];
+  let bulletItems = [];
+
+  function flushBullets() {
+    if (!bulletItems.length) return;
+    fragments.push(`<ul class="document-list">${bulletItems.map((item) => `<li>${renderRichText(item)}</li>`).join('')}</ul>`);
+    bulletItems = [];
+  }
+
+  lines.forEach((rawLine) => {
+    const trimmed = String(rawLine || '').trim();
+    if (!trimmed || /^[-*_]{3,}$/.test(trimmed)) {
+      flushBullets();
+      return;
+    }
+
+    const markdownHeading = extractMarkdownHeading(trimmed);
+    const canonicalHeading = headingFromLine(trimmed);
+    const cleanedLine = cleanInlineMarkdown(stripMarkdownPrefix(trimmed));
+    const bulletMatch = trimmed.match(/^(?:[-*]\s+|[\u2022\u25cf\u25cb\u25a0\u25aa]\s+)(.+)$/);
+    const amountLine = parseAmountLine(cleanedLine);
+    const detailMatch = cleanedLine.match(/^([^:]{2,40}):\s*(.+)$/);
+
+    if (markdownHeading) {
+      flushBullets();
+      if (markdownHeading.level === 1) {
+        fragments.push(`<h2 class="document-title">${renderRichText(markdownHeading.text)}</h2>`);
+      } else if (markdownHeading.level === 2) {
+        fragments.push(`<h2 class="document-section-heading">${renderRichText(markdownHeading.text)}</h2>`);
+      } else {
+        fragments.push(`<h3 class="document-subheading">${renderRichText(markdownHeading.text)}</h3>`);
+      }
+      return;
+    }
+
+    if (canonicalHeading) {
+      flushBullets();
+      fragments.push(`<h2 class="document-section-heading">${renderRichText(cleanedLine)}</h2>`);
+      return;
+    }
+
+    if (/^\(.+\)$/.test(cleanedLine)) {
+      flushBullets();
+      fragments.push(`<p class="document-subtitle">${renderRichText(cleanedLine)}</p>`);
+      return;
+    }
+
+    if (/^step\s*\d+/i.test(cleanedLine)) {
+      flushBullets();
+      fragments.push(`<h3 class="document-step">${renderRichText(cleanedLine)}</h3>`);
+      return;
+    }
+
+    if (/^[A-Za-z][A-Za-z0-9 /&+-]{1,50}\s+can\s*:$/i.test(cleanedLine)) {
+      flushBullets();
+      fragments.push(`<p class="document-role">${renderRichText(cleanedLine)}</p>`);
+      return;
+    }
+
+    if (bulletMatch) {
+      bulletItems.push(cleanInlineMarkdown(bulletMatch[1].trim()));
+      return;
+    }
+
+    if (amountLine) {
+      flushBullets();
+      fragments.push(
+        `<div class="document-amount"><span>${escapeHtml(amountLine.label)}</span><strong>${escapeHtml(amountLine.value)}</strong></div>`
+      );
+      return;
+    }
+
+    if (
+      detailMatch &&
+      !/^quotation\s*[-:\u2013\u2014]/i.test(cleanedLine) &&
+      !/^step\s*\d+/i.test(cleanedLine)
+    ) {
+      flushBullets();
+      fragments.push(
+        `<p class="document-detail"><strong>${escapeHtml(detailMatch[1].trim())}:</strong> ${renderRichText(detailMatch[2].trim())}</p>`
+      );
+      return;
+    }
+
+    flushBullets();
+    fragments.push(`<p class="document-paragraph">${renderRichText(cleanedLine)}</p>`);
+  });
+
+  flushBullets();
+  return fragments.join('\n');
+}
+
 function fillTemplate(template, data, options = {}) {
   const generatedDate = new Intl.DateTimeFormat('en-IN', {
     day: '2-digit',
@@ -578,7 +896,10 @@ function fillTemplate(template, data, options = {}) {
     'Cloud Hosting Services': renderList(data.hosting),
     'Additional Charges': renderList(data.additionalCharges),
     'Exclusions': renderList(data.exclusions),
-    'Terms Grid': renderTermsGrid(data)
+    'Terms Grid': renderTermsGrid(data),
+    'Hero Cost': escapeHtml(data.developmentCharges.totalCost),
+    'Hero Timeline': escapeHtml(summarizeDuration(data.duration)),
+    'Prompt Document': renderPromptDocument(data.sourceText)
   };
 
   return template.replace(/\{\{\s*([^}]+?)\s*\}\}/g, (_, key) => replacements[key.trim()] || '');

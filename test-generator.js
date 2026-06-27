@@ -300,11 +300,80 @@ prompts.forEach((prompt, index) => {
   assert(parsed.featureGroups.length, `${prompt.name}: features missing`);
   assert(parsed.workflowSteps.length, `${prompt.name}: workflow missing`);
   assert(!html.includes('{{'), `${prompt.name}: unreplaced placeholder`);
-  assert(html.includes('Project Overview'), `${prompt.name}: overview section missing`);
-  assert(html.includes('Development Charges'), `${prompt.name}: cost section missing`);
-  assert(html.includes('workflow-step'), `${prompt.name}: workflow markup missing`);
+  assert(html.includes('document-paper'), `${prompt.name}: simple document markup missing`);
+  assert(html.includes('document-section-heading'), `${prompt.name}: section heading markup missing`);
+  assert(/Total Development Cost|Total Cost/i.test(html), `${prompt.name}: cost section missing`);
 
   console.log(`Stage ${index + 1} passed: ${prompt.name}`);
 });
 
+const markdownPrompt = `# Quotation - Dating Mobile Application
+
+(Android App + iOS App + Admin Dashboard)
+
+---
+
+## 1. Project Overview
+
+Development of a dating mobile application for profile discovery, matching, chat, and calling.
+
+## 8. Development Charges
+
+### Dating Mobile Application
+
+Total Development Cost: **Rs 1,15,000**`;
+
+const { html: markdownHtml } = renderQuotationHtml(markdownPrompt);
+
+assert(!markdownHtml.includes('## 1. Project Overview'), 'Markdown heading tokens should be removed');
+assert(!markdownHtml.includes('**Rs 1,15,000**'), 'Markdown bold markers should be removed');
+assert(markdownHtml.includes('document-amount'), 'Markdown total cost should render as a highlighted amount');
+
+const parserEdgeCases = [
+  {
+    name: 'Split-line cost and timeline',
+    text: `Quotation - Sample App
+
+8. Development Charges
+Total Development Cost
+Rs 55000
+
+9. Work Duration
+Estimated Timeline
+30 - 45 Working Days`,
+    expectedCost: 'Rs 55000',
+    expectedDuration: '30 - 45 Working Days'
+  },
+  {
+    name: 'Markdown summary labels',
+    text: `# Quotation - Sample App
+
+## Development Charges
+Project Budget: **Rs 95,000**
+
+## Timeline
+**60 Days**`,
+    expectedCost: 'Rs 95,000',
+    expectedDuration: '60 Days'
+  },
+  {
+    name: 'Summary block fallback scan',
+    text: `Quotation - Sample App
+
+Project Summary
+Development Cost: Rs 125000
+Timeline: 40 - 50 Working Days`,
+    expectedCost: 'Rs 125000',
+    expectedDuration: '40 - 50 Working Days'
+  }
+];
+
+parserEdgeCases.forEach((testCase) => {
+  const parsed = parseQuotationPrompt(testCase.text);
+  assert.strictEqual(parsed.developmentCharges.totalCost, testCase.expectedCost, `${testCase.name}: cost detection failed`);
+  assert.strictEqual(parsed.duration[0], testCase.expectedDuration, `${testCase.name}: duration detection failed`);
+});
+
+console.log('Cost and timeline fallback verification passed.');
+console.log('Markdown cleanup verification passed.');
 console.log('All 7 prompt recognition stages passed.');

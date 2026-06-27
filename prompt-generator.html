@@ -329,6 +329,22 @@
       color: var(--base-white);
     }
 
+    .btn-generate {
+      background: linear-gradient(135deg, #0e4ea8, #13a7e6);
+      color: #fff;
+      border: 1px solid rgba(14, 78, 168, 0.24);
+      box-shadow: 0 10px 22px rgba(14, 78, 168, 0.18);
+      font-weight: 700;
+    }
+
+    .btn-generate:hover {
+      background: linear-gradient(135deg, #0a3e87, #0e93d0);
+      color: #fff;
+      border-color: rgba(14, 78, 168, 0.32);
+      box-shadow: 0 12px 24px rgba(14, 78, 168, 0.24);
+      transform: translateY(-1px);
+    }
+
     .app-workspace {
       position: relative;
       flex: 1;
@@ -766,7 +782,7 @@
         <div class="toolbar-right">
           <button class="toolbar-btn" id="uploadPromptBtn"><i class="fa-solid fa-upload"></i> Upload Prompt</button>
           <button class="toolbar-btn" id="clearBtn"><i class="fa-regular fa-trash-can"></i> Clear</button>
-          <button class="toolbar-btn btn-upgrade" id="previewBtn"><i class="fa-regular fa-eye"></i> Preview HTML</button>
+          <button class="toolbar-btn btn-upgrade btn-generate" id="previewBtn"><i class="fa-regular fa-eye"></i> Preview HTML</button>
           <button class="toolbar-btn btn-upgrade" id="savePdfTopBtn"><i class="fa-regular fa-file-pdf"></i> Save PDF</button>
         </div>
       </div>
@@ -776,14 +792,6 @@
           <label class="field-group">
             <span class="field-label">Brand Name <span id="brandHint">Shown in header/footer</span></span>
             <input id="brandNameInput" value="Digital Links">
-          </label>
-          <label class="field-group">
-            <span class="field-label">Template <span>Preview style</span></span>
-            <select id="templateSelect">
-              <option value="template1">Template 1 - Blue Classic</option>
-              <option value="template2">Template 2 - Orange Studio</option>
-              <option value="template3">Template 3 - Red Executive</option>
-            </select>
           </label>
           <label class="field-group">
             <span class="field-label">Status <span>Live output</span></span>
@@ -816,8 +824,7 @@
               Plain text only, exact section order, each item on a new line, and role labels like Users can:, Vendors can:, Admin can:, Website can:.
             </div>
             <div class="asset-actions">
-              <button class="toolbar-btn" id="copyRulesBtn"><i class="fa-regular fa-copy"></i> Copy Rules</button>
-              <button class="toolbar-btn" id="copyMasterPromptBtn"><i class="fa-solid fa-wand-magic-sparkles"></i> Copy Master Prompt</button>
+              <span style="font-size:0.84rem; color:var(--text-light); font-weight:600;">Template 1 is the active quotation layout.</span>
             </div>
           </article>
         </div>
@@ -1041,152 +1048,7 @@ App publishing charges (Play Store & App Store)
 Apple Developer Account charges
 Any feature not explicitly mentioned above`;
 
-    const promptRulesText = `Generate quotation in clean parser-friendly plain text.
-
-Do:
-- Use exact section order from 1 to 13
-- Use plain text only
-- Put each item on a new line
-- Use Step 1 - Name format
-- Use Users can:, Vendors can:, Admin can:, Website can:
-- Use Label: Value format for technology stack
-- Use Total Development Cost: Rs [amount]
-- Use Estimated Timeline: on one line and duration on next line
-
-Do not:
-- Do not use Markdown
-- Do not use #, ##, ###, *, **, bullets, or tables
-- Do not use long dash or special symbols that may break encoding
-- Do not use the rupee symbol; use Rs
-- Do not add extra commentary before or after the quotation
-- Do not merge multiple items into one paragraph`;
-
-    const masterPromptText = `Create a project quotation in STRICT PLAIN TEXT for a rule-based quotation generator.
-
-Important:
-- Output plain text only.
-- Do not use Markdown.
-- Do not use #, ##, ### headings.
-- Do not use bold, italics, **, *, bullets, tables, or code blocks.
-- Do not use horizontal lines like ---.
-- Do not add notes, comments, suggestions, or explanations before or after the quotation.
-- Use only normal plain text lines.
-- Use normal hyphen "-" only, not long dash.
-- Use "Rs" instead of the rupee symbol.
-- Put every feature, module, platform, charge, and exclusion on its own line.
-- Keep actor labels exactly like: Users can:, Vendors can:, Admin can:, Website can:
-- Keep technology stack in Label: Value format only.
-- Keep cost in one exact line like: Total Development Cost: Rs 50000
-
-Use this exact structure:
-
-Quotation - [Project Name]
-
-([Platform 1] + [Platform 2] + [Platform 3] + [Platform 4])
-
-1. Project Overview
-[Write 2 to 4 short paragraphs]
-
-2. Platform Includes
-[Each platform on a new line]
-
-3. System Workflow
-Step 1 - User Access
-Users can:
-[Action 1]
-[Action 2]
-
-Step 2 - Discovery / Search
-Users can:
-[Action 1]
-[Action 2]
-
-Step 3 - Main Action
-Users can:
-[Action 1]
-[Action 2]
-
-Step 4 - Vendor / Staff / Provider Action
-Vendors can:
-[Action 1]
-[Action 2]
-
-Step 5 - Admin Management
-Admin can:
-[Action 1]
-[Action 2]
-
-Step 6 - Completion / Reporting
-Users can:
-[Action 1]
-[Action 2]
-
-Admin can:
-[Action 1]
-[Action 2]
-
-4. App Features
-Users can:
-[Feature 1]
-[Feature 2]
-
-Vendors can:
-[Feature 1]
-[Feature 2]
-
-Admin can:
-[Feature 1]
-[Feature 2]
-
-Website can:
-[Feature 1]
-[Feature 2]
-
-5. Core Modules
-[Each module on a new line]
-
-6. Additional Features
-[Each feature on a new line]
-
-7. Technology Stack
-Frontend Mobile: [value]
-Frontend Website: [value]
-Backend: [value]
-Framework: [value]
-Database: [value]
-Admin Panel: [value]
-Hosting: [value]
-Authentication: [value]
-Payment Gateway: [value]
-
-8. Development Charges
-[Project Name]
-Total Development Cost: Rs [amount]
-
-9. Work Duration
-Estimated Timeline:
-[Duration]
-
-10. Payment Structure
-[Line 1]
-[Line 2]
-
-11. Cloud Hosting Services (Optional)
-[Line 1]
-[Line 2]
-
-12. Additional Charges (Third-Party Services)
-[Line 1]
-[Line 2]
-
-13. Exclusions
-[Line 1]
-[Line 2]
-
-Now generate this quotation for: [Describe your project here]`;
-
     const promptInput = document.getElementById('promptInput');
-    const templateSelect = document.getElementById('templateSelect');
     const brandNameInput = document.getElementById('brandNameInput');
     const statusText = document.getElementById('statusText');
     const assetStatus = document.getElementById('assetStatus');
@@ -1227,7 +1089,6 @@ Now generate this quotation for: [Describe your project here]`;
             overviewBanner: defaults.overviewBanner
           };
           brandNameInput.value = defaults.brandName;
-          templateSelect.value = defaults.templateId || 'template1';
         }
       } catch (_error) {
       }
@@ -1249,8 +1110,6 @@ Now generate this quotation for: [Describe your project here]`;
       document.getElementById('bannerUploadBtn').addEventListener('click', () => bannerFileInput.click());
       document.getElementById('logoResetBtn').addEventListener('click', resetLogo);
       document.getElementById('bannerResetBtn').addEventListener('click', resetBanner);
-      document.getElementById('copyRulesBtn').addEventListener('click', () => copyText(promptRulesText, 'Prompt rules copied.'));
-      document.getElementById('copyMasterPromptBtn').addEventListener('click', () => copyText(masterPromptText, 'Master prompt copied.'));
       document.getElementById('actionLogoBtn').addEventListener('click', () => logoFileInput.click());
       document.getElementById('actionBannerBtn').addEventListener('click', () => bannerFileInput.click());
       document.getElementById('actionSampleBtn').addEventListener('click', loadSample);
@@ -1259,10 +1118,6 @@ Now generate this quotation for: [Describe your project here]`;
       document.getElementById('footerPreviewBtn').addEventListener('click', previewHtml);
       document.getElementById('footerSavePdfBtn').addEventListener('click', savePdfInBrowser);
       document.getElementById('savePdfPreviewBtn').addEventListener('click', savePdfInBrowser);
-      templateSelect.addEventListener('change', () => {
-        invalidatePreview();
-        setStatus(`${templateSelect.options[templateSelect.selectedIndex].text} selected.`);
-      });
       brandNameInput.addEventListener('input', () => {
         syncBrandUi();
         invalidatePreview();
@@ -1469,7 +1324,6 @@ Now generate this quotation for: [Describe your project here]`;
     function buildRequestBody(prompt) {
       return {
         prompt,
-        templateId: templateSelect.value || 'template1',
         branding: {
           brandName: brandingState.brandName,
           brandLogo: brandingState.brandLogo,
@@ -1480,15 +1334,6 @@ Now generate this quotation for: [Describe your project here]`;
 
     function invalidatePreview() {
       lastPreviewHtml = '';
-    }
-
-    async function copyText(text, successMessage) {
-      try {
-        await navigator.clipboard.writeText(text);
-        setStatus(successMessage);
-      } catch (_error) {
-        setStatus('Clipboard copy was blocked by the browser.');
-      }
     }
 
     async function prepareAssetDataUrl(file, key) {
